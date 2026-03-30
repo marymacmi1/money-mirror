@@ -21,11 +21,18 @@ export const NavigationBar = () => {
             </NavigationMenuLink>
           </NavigationMenuItem>
           {isLoggedIn && (
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <a href="/dashboard" className="text-white hover:text-blue-400 transition">Dashboard</a>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <a href="/dashboard" className="text-white hover:text-blue-400 transition">Dashboard</a>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <a href="/link-account" className="text-white hover:text-blue-400 transition">Link Account</a>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </>
           )}
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
