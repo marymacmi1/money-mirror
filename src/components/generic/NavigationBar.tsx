@@ -5,6 +5,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu"
 import logo from '@/money-mirror-logo-dark.png'
+import { ChartColumn } from 'lucide-react';
 import { UserMenu } from './UserMenu'
 import { useAuth } from '@/context/AuthContext'
 
@@ -17,7 +18,7 @@ export const NavigationBar = () => {
         <NavigationMenuList>   
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
-              <a href="/"><img src={logo} style={{ width: '30px', height: '50px' }}/></a>
+              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity"><ChartColumn className="h-6 w-6 text-primary"/><span className="font-bold text-xl">MoneyMirror</span></a>
             </NavigationMenuLink>
           </NavigationMenuItem>
           {isLoggedIn && (

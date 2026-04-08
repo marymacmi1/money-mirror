@@ -3,6 +3,7 @@ import { useProtectedRoute } from '@/hooks/useProtectedRoute'
 import { CreditCard, Building2, Zap, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { createAccount, type NewAccount } from '@/services/api'
 
 export const Route = createFileRoute('/link-account')({
   component: RouteComponent,
@@ -94,8 +95,11 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
   const [accountNumber, setAccountNumber] = useState('')
   const [balance, setBalance] = useState('')
   const [interestRate, setInterestRate] = useState('')
+  const [minimumPayment, setMinimumPayment] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const getAccountLabel = () => {
     switch (accountType) {
@@ -110,7 +114,20 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const getProvider = () => {
+    switch (accountType) {
+      case 'credit-card':
+        return 'CreditCard'
+      case 'bank':
+        return 'Bank'
+      case 'klarna':
+        return 'Klarna'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -119,16 +136,51 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
       return
     }
 
-    // Simulate account linking
-    setSuccess(true)
-    setTimeout(() => {
-      setAccountName('')
-      setAccountNumber('')
-      setBalance('')
-      setInterestRate('')
-      setSuccess(false)
-      onBack()
-    }, 2000)
+    setLoading(true)
+    try {
+      const userId = localStorage.getItem('userEmail') || 'user'
+      
+      const newAccount: NewAccount = {
+        user_id: userId,
+        account_name: accountName,
+        provider: getProvider(),
+        account_type: accountType,
+        balance: parseFloat(balance),
+      }
+
+      if (minimumPayment) {
+        newAccount.minimum_payment = parseFloat(minimumPayment)
+      }
+      if (dueDate) {
+        newAccount.due_date = dueDate
+      }
+      if (interestRate) {
+        newAccount.metadata = {
+          interest_rate: interestRate,
+        }
+        if (accountNumber) {
+          newAccount.metadata.account_number = `**** **** **** ${accountNumber}`
+        }
+      }
+
+      await createAccount(newAccount)
+
+      setSuccess(true)
+      setTimeout(() => {
+        setAccountName('')
+        setAccountNumber('')
+        setBalance('')
+        setInterestRate('')
+        setMinimumPayment('')
+        setDueDate('')
+        setSuccess(false)
+        onBack()
+      }, 2000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to link account')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -152,7 +204,8 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
               type="text"
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+              disabled={loading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
               placeholder="e.g., Chase Sapphire"
             />
           </div>
@@ -167,7 +220,8 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value.slice(0, 4))}
                 maxLength={4}
-                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+                disabled={loading}
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
                 placeholder="1234"
               />
             </div>
@@ -175,15 +229,44 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              Current Balance $ *
+              Current Balance £ *
             </label>
             <input
               type="number"
               value={balance}
               onChange={(e) => setBalance(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+              disabled={loading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
               placeholder="0.00"
               step="0.01"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Minimum Payment
+            </label>
+            <input
+              type="number"
+              value={minimumPayment}
+              onChange={(e) => setMinimumPayment(e.target.value)}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Due Date
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
             />
           </div>
 
@@ -196,7 +279,8 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
                 type="number"
                 value={interestRate}
                 onChange={(e) => setInterestRate(e.target.value)}
-                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+                disabled={loading}
+                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
                 placeholder="0.00"
                 step="0.01"
               />
@@ -217,9 +301,10 @@ function LinkAccountForm({ accountType, onBack }: LinkAccountFormProps) {
 
           <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 disabled:opacity-50"
           >
-            Link Account
+            {loading ? 'Linking...' : 'Link Account'}
           </Button>
         </form>
       </div>

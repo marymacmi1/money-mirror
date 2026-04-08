@@ -1,41 +1,39 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-
-export const Route = createFileRoute('/login')({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    redirect: (search.redirect as string) || undefined,
-  }),
-  component: LoginComponent,
+export const Route = createFileRoute('/signup')({
+  component: SignupComponent,
 })
 
-function LoginComponent() {
-  const { login, loading: authLoading } = useAuth()
+function SignupComponent() {
+  const { signup, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const search = useSearch({ from: '/login' })
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // If already logged in, redirect immediately
     if (localStorage.getItem('auth_token')) {
-      navigate({ to: search.redirect || '/dashboard' })
+      navigate({ to: '/dashboard' })
     }
-  }, [navigate, search.redirect])
+  }, [navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
     setLoading(true)
     try {
-      await login(email, password)
-      navigate({ to: search.redirect || '/dashboard' })
+      await signup(email, password, name)
+      navigate({ to: '/dashboard' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
       setLoading(false)
     }
@@ -44,8 +42,19 @@ function LoginComponent() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-900">
       <div className="bg-slate-800 rounded-lg p-8 w-full max-w-md border border-slate-700">
-        <h2 className="text-2xl font-bold text-white mb-6">Login</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Create Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              disabled={loading || authLoading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
+              placeholder="John Doe"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
             <input
@@ -68,6 +77,17 @@ function LoginComponent() {
               placeholder="••••••"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              disabled={loading || authLoading}
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50"
+              placeholder="••••••"
+            />
+          </div>
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 rounded p-3">
               <p className="text-red-400 text-sm">{error}</p>
@@ -78,17 +98,17 @@ function LoginComponent() {
             disabled={loading || authLoading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 disabled:opacity-50"
           >
-            {loading || authLoading ? 'Logging in...' : 'Login'}
+            {loading || authLoading ? 'Creating Account...' : 'Sign Up'}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-slate-400 text-sm mb-2">Don't have an account?</p>
+          <p className="text-slate-400 text-sm mb-2">Already have an account?</p>
           <button
-            onClick={() => navigate({ to: '/signup' })}
+            onClick={() => navigate({ to: '/login' })}
             className="text-blue-400 hover:text-blue-300 transition font-medium"
           >
-            Sign Up
+            Login
           </button>
         </div>
       </div>

@@ -1,0 +1,725 @@
+openapi: 3.0.3
+info:
+  title: Debt Intelligence Service API
+  version: 1.0.0
+  description: API for user and debt account management, summary generation, and chart data.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/v1/user:
+    post:
+      summary: Create a new user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: List all users
+      tags:
+        - User
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/accounts:
+    post:
+      summary: Create a debt account
+      tags:
+        - Accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAccount'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: List all debt accounts
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: A list of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/summary:
+    get:
+      summary: Get debt summary for the current user
+      tags:
+        - Summary
+      responses:
+        '200':
+          description: Summary data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/account/{account}:
+    get:
+      summary: Get one account by account identifier
+      tags:
+        - Accounts
+      parameters:
+        - name: account
+          in: path
+          required: true
+          description: Account identifier, e.g. barclays-credit-card
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/chart/{account}:
+    get:
+      summary: Get chart data for an account
+      tags:
+        - Chart
+      parameters:
+        - name: account
+          in: path
+          required: true
+          description: Account identifier for chart generation
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chart dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chart'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:00:00Z"
+    NewUser:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "acct_001"
+        user_id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        account_name:
+          type: string
+          example: "Barclays Credit Card"
+        provider:
+          type: string
+          example: "Barclays"
+        account_type:
+          type: string
+          example: "credit-card"
+        balance:
+          type: number
+          format: float
+          example: 1425.50
+        minimum_payment:
+          type: number
+          format: float
+          example: 45.00
+        due_date:
+          type: string
+          format: date
+          example: "2026-04-15"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            account_number: "**** **** **** 1234"
+            currency: "GBP"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:00:00Z"
+    NewAccount:
+      type: object
+      required:
+        - user_id
+        - account_name
+        - provider
+        - account_type
+        - balance
+      properties:
+        user_id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        account_name:
+          type: string
+          example: "Klarna Account"
+        provider:
+          type: string
+          example: "Klarna"
+        account_type:
+          type: string
+          example: "buy-now-pay-later"
+        balance:
+          type: number
+          format: float
+          example: 720.25
+        minimum_payment:
+          type: number
+          format: float
+          example: 30.00
+        due_date:
+          type: string
+          format: date
+          example: "2026-04-20"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            plan: "Pay in 3"
+            customer_id: "KL12345"
+    Summary:
+      type: object
+      properties:
+        total_balance:
+          type: number
+          format: float
+          example: 2145.75
+        total_accounts:
+          type: integer
+          example: 3
+        next_due:
+          type: string
+          format: date
+          example: "2026-04-15"
+        accounts:
+          type: array
+          items:
+            type: object
+            properties:
+              account_name:
+                type: string
+                example: "Barclays Credit Card"
+              balance:
+                type: number
+                format: float
+                example: 1425.50
+              due_date:
+                type: string
+                format: date
+                example: "2026-04-15"
+    Chart:
+      type: object
+      properties:
+        account_id:
+          type: string
+          example: "acct_001"
+        account_name:
+          type: string
+          example: "Barclays Credit Card"
+        labels:
+          type: array
+          items:
+            type: string
+          example:
+            - "Jan"
+            - "Feb"
+            - "Mar"
+        data:
+          type: array
+          items:
+            type: number
+          example:
+            - 1500.0
+            - 1450.0
+            - 1425.5
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            description: "Balance history for chart rendering"
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Not found"
+```# filepath: swagger.yaml
+openapi: 3.0.3
+info:
+  title: Debt Intelligence Service API
+  version: 1.0.0
+  description: API for user and debt account management, summary generation, and chart data.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/v1/user:
+    post:
+      summary: Create a new user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: List all users
+      tags:
+        - User
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/accounts:
+    post:
+      summary: Create a debt account
+      tags:
+        - Accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAccount'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: List all debt accounts
+      tags:
+        - Accounts
+      responses:
+        '200':
+          description: A list of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/summary:
+    get:
+      summary: Get debt summary for the current user
+      tags:
+        - Summary
+      responses:
+        '200':
+          description: Summary data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/account/{account}:
+    get:
+      summary: Get one account by account identifier
+      tags:
+        - Accounts
+      parameters:
+        - name: account
+          in: path
+          required: true
+          description: Account identifier, e.g. barclays-credit-card
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/chart/{account}:
+    get:
+      summary: Get chart data for an account
+      tags:
+        - Chart
+      parameters:
+        - name: account
+          in: path
+          required: true
+          description: Account identifier for chart generation
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chart dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chart'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:00:00Z"
+    NewUser:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "acct_001"
+        user_id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        account_name:
+          type: string
+          example: "Barclays Credit Card"
+        provider:
+          type: string
+          example: "Barclays"
+        account_type:
+          type: string
+          example: "credit-card"
+        balance:
+          type: number
+          format: float
+          example: 1425.50
+        minimum_payment:
+          type: number
+          format: float
+          example: 45.00
+        due_date:
+          type: string
+          format: date
+          example: "2026-04-15"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            account_number: "**** **** **** 1234"
+            currency: "GBP"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:00:00Z"
+    NewAccount:
+      type: object
+      required:
+        - user_id
+        - account_name
+        - provider
+        - account_type
+        - balance
+      properties:
+        user_id:
+          type: string
+          example: "642f9c0a5b9a4472a6cb8f4d"
+        account_name:
+          type: string
+          example: "Klarna Account"
+        provider:
+          type: string
+          example: "Klarna"
+        account_type:
+          type: string
+          example: "buy-now-pay-later"
+        balance:
+          type: number
+          format: float
+          example: 720.25
+        minimum_payment:
+          type: number
+          format: float
+          example: 30.00
+        due_date:
+          type: string
+          format: date
+          example: "2026-04-20"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            plan: "Pay in 3"
+            customer_id: "KL12345"
+    Summary:
+      type: object
+      properties:
+        total_balance:
+          type: number
+          format: float
+          example: 2145.75
+        total_accounts:
+          type: integer
+          example: 3
+        next_due:
+          type: string
+          format: date
+          example: "2026-04-15"
+        accounts:
+          type: array
+          items:
+            type: object
+            properties:
+              account_name:
+                type: string
+                example: "Barclays Credit Card"
+              balance:
+                type: number
+                format: float
+                example: 1425.50
+              due_date:
+                type: string
+                format: date
+                example: "2026-04-15"
+    Chart:
+      type: object
+      properties:
+        account_id:
+          type: string
+          example: "acct_001"
+        account_name:
+          type: string
+          example: "Barclays Credit Card"
+        labels:
+          type: array
+          items:
+            type: string
+          example:
+            - "Jan"
+            - "Feb"
+            - "Mar"
+        data:
+          type: array
+          items:
+            type: number
+          example:
+            - 1500.0
+            - 1450.0
+            - 1425.5
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            description: "Balance history for chart rendering"
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Not found"

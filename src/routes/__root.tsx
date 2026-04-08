@@ -10,15 +10,10 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <AuthProvider>
-      <div 
-      // className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
-      >
-        <div 
-        //className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-2 flex gap-2 text-lg border-b border-slate-700"
-        >
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="bg-slate-900 p-4 flex gap-2 text-lg border-b border-slate-700">
           <NavigationBar />
         </div>
-        <hr />
         <Outlet />
         <TanStackRouterDevtools position="bottom-right" />
       </div>

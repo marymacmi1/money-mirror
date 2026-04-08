@@ -7,11 +7,10 @@ export const Route = createFileRoute('/')({
 })
 
 function HomeComponent() {
-
   const navigate = useNavigate()
   
   return (
-    <div className="min-h-screen from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
       <div className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
@@ -24,8 +23,7 @@ function HomeComponent() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button onClick={() => {
           navigate({
-            to: '/login',
-            // search: { redirect: location.pathname + location.search },
+            to: '/signup',
           })
         }}
         size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg">
@@ -129,7 +127,7 @@ function HomeComponent() {
           <p className="text-lg text-slate-300 mb-8">
             Join thousands of people who are visualizing and managing their debt smarter.
           </p>
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg">
+          <Button onClick={() => navigate({ to: '/signup' })} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg">
             Start Your Free Account <ArrowRight className="ml-2" />
           </Button>
         </div>
